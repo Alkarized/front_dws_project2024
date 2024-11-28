@@ -3,13 +3,13 @@ import TableCell from "@mui/material/TableCell";
 import Checkbox from "@mui/material/Checkbox";
 import TableBody from "@mui/material/TableBody";
 import * as React from "react";
-import EditableElement from "../../editable/EditableElement";
+import EditableElement from "../components/editable/EditableElement";
 
-const SegmentTableBody = ({visibleRows, selected, handleClick, emptyRows}) => {
+const SegmentTableBody = ({visibleRows, selected, handleClick, emptyRows, handleChangeById, allSelected}) => {
     return (
         <TableBody>
             {visibleRows.map((row, index) => {
-                const isItemSelected = selected.indexOf(row.id) !== -1;
+                const isItemSelected = allSelected ? selected.indexOf(row.id) == -1 : selected.indexOf(row.id) !== -1;
                 const labelId = `segment-table-checkbox-${index}`;
 
                 return (
@@ -47,7 +47,7 @@ const SegmentTableBody = ({visibleRows, selected, handleClick, emptyRows}) => {
                         <TableCell
                             align="left"
                         >
-                            <EditableElement/>
+                            <EditableElement id={row.id} value={row.name} handleChangeById={handleChangeById}/>
                         </TableCell>
                     </TableRow>
                 );

@@ -7,15 +7,11 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import * as React from "react";
 
-const SegmentTableToolBar = ({numSelected}) => {
+const SegmentTableToolBar = ({handleDeleteSegments, numSelected}) => {
     const ToolBarName = "Semgents"
 
     const handleFilter = () => {
         console.log("filter pressed");
-    }
-
-    const handleDelete = () => {
-        console.log("delete pressed");
     }
 
     return (
@@ -42,7 +38,9 @@ const SegmentTableToolBar = ({numSelected}) => {
                         {numSelected} selected
                     </Typography>
                     <Tooltip title="Delete">
-                        <IconButton onClick={handleDelete}>
+                        <IconButton
+                            onClick={handleDeleteSegments}
+                        >
                             <DeleteIcon/>
                         </IconButton>
                     </Tooltip>

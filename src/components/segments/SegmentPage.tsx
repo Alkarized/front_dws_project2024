@@ -1,4 +1,4 @@
-import {Box, Button, Container, TextField, ThemeProvider} from "@mui/material";
+import {Container, ThemeProvider} from "@mui/material";
 import theme from "../../theme/Theme";
 import SegmentTable from "./table/SegmentTable";
 
@@ -7,28 +7,14 @@ const SegmentPage = () => {
         <>
             <ThemeProvider theme={theme}>
                 <Container component="main">
-                    <Box margin={2} sx={{
-                        display: 'flex',
-                        bgcolor: 'background.paper',
-                        borderRadius: 1,
-                        boxShadow: 3,
-                        p: 3,
-                    }}>
-                        <TextField
-                            id="newSegment"
-                            label="Название сегмента"
-                            name="newSegment"
-                            variant="outlined"
-                            color="primary">
-                        </TextField>
-                        <Button>
-                            Add new Segment
-                        </Button>
-                    </Box>
-
-                    <SegmentTable/>
+                    <SegmentTable
+                    />
                 </Container>
             </ThemeProvider>
+            <div> Вопрос про контролл флоу: <br/>
+                Есть toast, который всплывает по факту окончания вызова API1, то есть до вызова получения данных с сервера или после их получения? <br/>
+                2 примера, add и change elem
+            </div>
         </>
     );
 };
