@@ -29,7 +29,7 @@ const headCells: HeadCell[] = [
     },
 ];
 
-const SegmentTableHead = ({onSelectAllClick, numSelected, rowCount, handleFilter}) => {
+const SegmentTableHead = ({onSelectAllClick, numSelected, rowCount, handleFilter, isAllSelected}) => {
     return (
         <TableHead>
             <TableRow>

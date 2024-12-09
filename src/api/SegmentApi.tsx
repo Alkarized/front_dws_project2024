@@ -8,11 +8,16 @@ export interface Data {
     name: string;
 }
 
+export interface ReturnData{
+    data: Data[];
+    rows: number;
+}
+
 export function createData(id: number, name: string): Data {
     return {id, name};
 }
 
-export const START_LENGTH = 123
+export const START_LENGTH = 110
 
 export interface filters {
     nameFilter? : string,
@@ -28,40 +33,43 @@ function generateRowsData(c: number): Data[] {
     }
     return ans
 }
-
-export const testSegment = async () => {
-    return await axios.post(BASE_URL + "/test", "{}");
-};
-
 export const addNewSegment = (text: string) => {
     return new Promise((resolve, reject) => {
         let newId = ROWS.length == 0 ? 0 : ROWS[ROWS.length - 1].id + 1
         setTimeout(() => {
             ROWS.push(createData(newId, text))
-            resolve(1);
+            resolve(newId);
         }, 1000);
     })
 
 }
 
-export const getSegmentsOnPage = (rowsPerPage, page, filter : filters) => {
-    //console.log("idFilter: " + filter.idFilter)
-    //console.log("name: " + filter.nameFilter)
-    //console.log("filtered by id: " + [...ROWS].filter(elem => elem.id.toString().startsWith(filter.idFilter)).length)
-
+export const getSegmentsOnPageWithFilter = (rowsPerPage, page, filter : filters) => {
     return new Promise((resolve, reject) => {
 
+        let filteredData = [...ROWS].filter(elem => elem.id.toString().startsWith(filter.idFilter))
+            .filter(elem=> elem.name.startsWith(filter.nameFilter));
+
+        let data = filteredData
+            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+
         setTimeout(() => {
-            resolve([...ROWS].filter(elem => elem.id.toString().startsWith(filter.idFilter))
-                .filter(elem=> elem.name.startsWith(filter.nameFilter)).
-                slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage));
+            resolve({data: data, rows: filteredData.length});
         }, 1000);
     })
+}
+
+export const getSegmentsOnPage = (rowsPerPage, page) => {
+    let filter : filters = {
+        idFilter : "",
+        nameFilter : ""
+    }
+    return getSegmentsOnPageWithFilter(rowsPerPage, page, filter)
 
 }
 
 export const updateSegmentData = (id, newValue) => {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         setTimeout(() => {
             ROWS = ROWS.map((row) => {
                 if (row.id == id){
@@ -78,13 +86,13 @@ export const updateSegmentData = (id, newValue) => {
     })
 }
 
-export const deleteSegments = (allSelected, ids: Id[]) => {
-    return new Promise((resolve, reject) => {
+export const deleteSegments = (allSelected: boolean, ids: Set<Id>) => {
+    return new Promise((resolve) => {
         let count = 0
 
         if (allSelected){
             ROWS = ROWS.filter((row) => {
-                if (ids.indexOf(row.id) !== -1){
+                if (ids.has(row.id)){
                     return true
                 }
                 count++
@@ -92,7 +100,7 @@ export const deleteSegments = (allSelected, ids: Id[]) => {
             })
         } else {
             ROWS = ROWS.filter((row) => {
-                if (ids.indexOf(row.id) !== -1){
+                if (ids.has(row.id)){
                     count++
                     return false
                 }
@@ -100,10 +108,8 @@ export const deleteSegments = (allSelected, ids: Id[]) => {
             })
         }
 
-
-
         setTimeout(() => {
-            resolve(count)
+            resolve({deleted: count, rows: ROWS.length - count})
         }, 1000);
     })
 }

@@ -16,6 +16,7 @@ const FilterByRow = ({label, handleChangeFilter}) => {
 
     const handleClose = () => {
         setAnchorEl(null);
+        setFilterValue(elem=> elem.trim());
         handleChangeFilter(filterValue, label)
     };
 
