@@ -1,17 +1,35 @@
 import {useState} from "react";
-import {Box, Button, Modal, TextField, Typography} from "@mui/material";
+import {
+    Box,
+    Button,
+    MenuItem,
+    Modal,
+    Select,
+    Stack,
+    TextField,
+    Typography
+} from "@mui/material";
 
-const DistributeSegment = () => {
+const DistributeSegment = ({handleSubmitRegexSegments, handleSubmitPercentageSegments}) => {
 
     const [isModalOpen, setModalOpen] = useState(false);
-    const [percentage, setPercentage] = useState(0);
-    const [email, setEmail] = useState('');
-    const [ip, setIp] = useState('');
+    const [percentage, setPercentage] = useState(1);
+    const [segment, setSegment] = useState(0);
+    const [regex, setRegex] = useState('');
+    const [regexType, setRegexType] = useState("EmailRegexp")
 
-    const handleSubmit = (e) => {
+    const handleSubmitRegex = (e) => {
         e.preventDefault();
-        console.log({ percentage, email, ip });
+        console.log({ segment, regex, regexType });
         setModalOpen(false);
+        handleSubmitRegexSegments({ segment, regex, regexType });
+    };
+
+    const handleSubmitPercentage = (e) => {
+        e.preventDefault();
+        console.log({percentage});
+        setModalOpen(false);
+        handleSubmitPercentageSegments({percentage})
     };
 
     const handleClose = () => {
@@ -21,13 +39,26 @@ const DistributeSegment = () => {
     const handleChangePercentage = (value) => {
         if (value > 100){
             setPercentage(100)
-        } else if (value < 0){
+        } else if (value < 1){
             setPercentage(1)
         } else {
             setPercentage(value.replace(/^0+/, ''))
         }
 
     }
+
+    const handleChangeSegment = (value) => {
+        if (value < 0){
+            setSegment(0)
+        } else {
+            setSegment(value.replace(/^0+/, ''))
+        }
+
+    }
+
+    const handleChange = (event) => {
+        setRegexType(event.target.value);
+    };
 
     const modalStyle = {
         position: 'absolute',
@@ -51,38 +82,71 @@ const DistributeSegment = () => {
                     <Typography variant="h6" component="h2" gutterBottom>
                         Ввод данных
                     </Typography>
-                    <form onSubmit={handleSubmit}>
-                        <TextField
-                            label="Процент (1-100)"
-                            type="number"
-                            value={percentage}
-                            onChange={(e) => handleChangePercentage(e.target.value)}
-                            fullWidth
-                            margin="normal"
-                        />
-                        <TextField
-                            label="Почта"
-                            type="text"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            fullWidth
-                            margin="normal"
-                        />
-                        <TextField
-                            label="IP"
-                            type="text"
-                            value={ip}
-                            onChange={(e) => setIp(e.target.value)}
-                            fullWidth
-                            margin="normal"
-                        />
-                        <Button type="submit" variant="contained" color="primary" sx={{ mt: 2 }}>
-                            Отправить
-                        </Button>
-                        <Button type="button" onClick={handleClose} variant="outlined" color="secondary" sx={{ mt: 2, ml: 2 }}>
-                            Закрыть
-                        </Button>
-                    </form>
+                    <Stack direction="row" spacing={5}>
+                        <Stack>
+                            <Typography>
+                                Распределение всех сегментов для процентов пользователей
+                            </Typography>
+                            <TextField
+                                label="Процент (1-100)"
+                                type="number"
+                                value={percentage}
+                                onChange={(e) => handleChangePercentage(e.target.value)}
+                                fullWidth
+                                margin="normal"
+                            />
+                            <form onSubmit={handleSubmitPercentage}>
+                                <Button type="submit" variant="contained" color="primary" sx={{mt: 2}}>
+                                    Отправить
+                                </Button>
+                            </form>
+
+                        </Stack>
+                        <Stack>
+                            <Typography>
+                                Распределение сегмента для выбранного типа регулярки
+                            </Typography>
+                            <Select
+                                id="demo-simple-select"
+                                value={regexType}
+                                variant="outlined"
+                                onChange={handleChange}
+
+                            >
+                                <MenuItem value={"EmailRegexp"}>email</MenuItem>
+                                <MenuItem value={"IpRegexp"}>ip</MenuItem>
+                                <MenuItem value={"LoginRegexp "}>login</MenuItem>
+                            </Select>
+                            <TextField
+                                label="ID Segm"
+                                type="number"
+                                value={segment}
+                                onChange={(e) => handleChangeSegment(e.target.value)}
+                                fullWidth
+                                margin="normal"
+                            />
+                            <TextField
+                                label="Регулярка"
+                                type="text"
+                                value={regex}
+                                onChange={(e) => setRegex(e.target.value)}
+                                fullWidth
+                                margin="normal"
+                            />
+
+                            <form onSubmit={handleSubmitRegex}>
+                                <Button type="submit" variant="contained" color="primary" sx={{mt: 2}}>
+                                    Отправить
+                                </Button>
+                            </form>
+
+                        </Stack>
+                    </Stack>
+
+                    <Button type="button" onClick={handleClose} variant="outlined" color="secondary"
+                            sx={{mt: 2, ml: 2}}>
+                        Закрыть
+                    </Button>
                 </Box>
             </Modal>
         </>

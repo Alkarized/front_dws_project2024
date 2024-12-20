@@ -3,7 +3,6 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import TableCell from "@mui/material/TableCell";
 import Checkbox from "@mui/material/Checkbox";
-import FilterByRow from "../components/FilterByRow";
 
 type alignCell = 'inherit' | 'left' | 'center' | 'right' | 'justify';
 
@@ -35,40 +34,31 @@ const headCells: HeadCell[] = [
     },
 ];
 
-const SegmentTableHead = ({onSelectAllClick, numSelected, rowCount, handleFilter, isAllSelected}) => {
+const UsersTableHead = () => {
     return (
         <TableHead>
             <TableRow>
-                <TableCell padding="checkbox">
-                    <Checkbox
-                        color="primary"
-                        indeterminate={numSelected > 0 && numSelected < rowCount}
-                        checked={rowCount > 0 && numSelected === rowCount}
-                        onChange={onSelectAllClick}
-                        inputProps={{
-                            'aria-label': 'select all desserts',
-                        }}
-                        style={{width: '45px'}}
-                    />
-                </TableCell>
                 {headCells.map((headCell) => (
                     <TableCell
                         key={headCell.id}
                         align={headCell.align}
-                        padding={headCell.disablePadding ? 'checkbox' : 'normal'}
+                        padding={'normal'}
                         style={{width: '400px'}}
 
                     >
-                        <FilterByRow
-                            handleChangeFilter={handleFilter}
-                            label={headCell.label}
-                        />
-
+                        {headCell.label}
                     </TableCell>
                 ))}
+                <TableCell
+                    padding={'normal'}
+                    style={{width: '50px'}}
+
+                >
+
+                </TableCell>
             </TableRow>
         </TableHead>
     );
 }
 
-export default SegmentTableHead
+export default UsersTableHead

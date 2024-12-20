@@ -5,7 +5,7 @@ import TableBody from "@mui/material/TableBody";
 import * as React from "react";
 import EditableElement from "../components/editable/EditableElement";
 
-const SegmentTableBody = ({visibleRows, selected, handleClick, emptyRows, handleChangeById, allSelected}) => {
+const SegmentTableBody = ({visibleRows, selected, handleClick, emptyRows, handleChangeName, handleChangeDescription, allSelected}) => {
     return (
         <TableBody>
             {visibleRows.map((row, index) => {
@@ -47,7 +47,13 @@ const SegmentTableBody = ({visibleRows, selected, handleClick, emptyRows, handle
                         <TableCell
                             align="left"
                         >
-                            <EditableElement id={row.id} value={row.name} handleChangeById={handleChangeById}/>
+                            <EditableElement id={row.id} value={row.name} handleChangeById={handleChangeName}/>
+                        </TableCell>
+
+                        <TableCell
+                            align="left"
+                        >
+                            <EditableElement id={row.id} value={row.description} handleChangeById={handleChangeDescription}/>
                         </TableCell>
                     </TableRow>
                 );

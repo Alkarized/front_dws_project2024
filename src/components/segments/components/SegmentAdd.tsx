@@ -1,13 +1,16 @@
 import {Box, Button, TextField} from "@mui/material";
 
-const SegmentAdd = ({segmentAddValue, handleSegmentAddValue, handleAddSegment,  isProcessAdd}) => {
+const SegmentAdd = ({segmentAddValue, handleSegmentAddValue, segmentDescription, handleSegmentDescription, handleAddSegment,  isProcessAdd}) => {
     return (
         <Box margin={2} sx={{
             display: 'flex',
             bgcolor: 'background.paper',
-            borderRadius: 1,
+            justifyContent: "space-between",
+            borderRadius: 3,
             boxShadow: 3,
-            p: 3,
+            p: 1,
+            width: 700
+
         }}>
             <TextField
                 id="newSegment"
@@ -17,6 +20,15 @@ const SegmentAdd = ({segmentAddValue, handleSegmentAddValue, handleAddSegment,  
                 color="primary"
                 value={segmentAddValue}
                 onChange={handleSegmentAddValue}
+            />
+            <TextField
+                id="newDesc"
+                label="Описание сегмента"
+                name="newDesc"
+                variant="outlined"
+                color="primary"
+                value={segmentDescription}
+                onChange={handleSegmentDescription}
             />
             <Button
                 disabled={isProcessAdd}

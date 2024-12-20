@@ -5,28 +5,26 @@ import TableContainer from '@mui/material/TableContainer';
 import TablePagination from '@mui/material/TablePagination';
 import Paper from '@mui/material/Paper';
 
-import {useEffect, useMemo, useRef, useState} from "react"
+import {useEffect, useState} from "react"
 import SegmentTableToolBar from "./SegmentTableToolBar";
 import SegmentTableHead from "./SegmentTableHead";
 import SegmentTableBody from "./SegmentTableBody";
 import LoadingProgressTable from "../components/LoadingProgressTable";
 import {
     addNewSegment,
-    deleteSegments, filters,
-    getSegmentsOnPage, getSegmentsOnPageWithFilter, ReturnData,
-    START_LENGTH,
+    deleteSegments, distribute, distributeRandom, filters,
+    getSegmentsOnPageWithFilter,
     updateSegmentData
 } from "../../../api/SegmentApi";
-import {notifyError, notifyLoading, updateError, updateSuccess} from "../../../toast/Notifies";
+import {notifyError, notifyLoading, notifySuccess, updateError, updateSuccess} from "../../../toast/Notifies";
 import {Id} from "react-toastify/dist/types";
 import SegmentAdd from "../components/SegmentAdd";
 import TableBody from "@mui/material/TableBody";
 import TableRow from "@mui/material/TableRow";
 import TableCell from "@mui/material/TableCell";
-import {Simulate} from "react-dom/test-utils";
-import select = Simulate.select;
-import copy = Simulate.copy;
 import DistributeSegment from "../components/DistributeSegment";
+import {useAuth} from "../../auth/AuthProvider";
+import EmptyTable from "../../EmptyTable";
 
 const createEmptyNumberSet = (): Set<Id> => {
     return new Set<Id>();
@@ -45,6 +43,8 @@ export default function SegmentTable() {
     const [selectedAll, setSelectedAll] = useState(false)
     const [emptyRows, setEmptyRows] = useState(0)
     const [segmentAddValue, setSegmentAddValue] = useState("");
+    const [segmentDescription, setSegmentDescription] = useState("");
+
     const [isProcessAdd, setIsProcessAdd] = useState(false)
     const [rowsAmount, setRowsAmount] = useState(0)
     const [filterElements, setFilterElements] = useState<filters>({nameFilter: "", idFilter: ""})
@@ -52,6 +52,7 @@ export default function SegmentTable() {
     const [rerender, setRerender] = useState(false);
     const [isFilterSet, setIsFilterSet] = useState(false);
     const [pageChanged, setPageChanged] = useState(false);
+    const {logout} = useAuth();
 
     const checkFilterSet = () : boolean => {
         return filterElements.idFilter != "" || filterElements.nameFilter != "";
@@ -64,6 +65,10 @@ export default function SegmentTable() {
 
     const handleSegmentAddValue = (e) => {
         setSegmentAddValue(e.target.value.trim())
+    }
+
+    const handleSegmentDescription = (e) => {
+        setSegmentDescription(e.target.value.trim())
     }
 
     const handleChangePage = (event: unknown, newPage: number) => {
@@ -189,30 +194,54 @@ export default function SegmentTable() {
         toggleRerender()
     }
 
-    const handleChangeById = (id, newValue) => {
+    const handleChangeName = (id, newValue) => {
+        setIsLoading(true)
+
+        let tmpId = notifyLoading("Обновление значения элемента")
+        let found = visible.find((elem) => elem.id == id)
+
+        updateSegmentData(id, {...found, name: newValue}).then(() => {
+            updateSuccess(tmpId, "Значение элемента обновлено");
+
+        }).catch((error) => {
+            updateError(tmpId, "Значение элемента не удалось обноввить");
+
+        }).finally(()=>{
+            toggleRerender()
+        })
+    }
+
+    const handleChangeDescription = (id, newValue) => {
         setIsLoading(true)
 
         let tmpId = notifyLoading("Обновление значения элемента")
 
-        updateSegmentData(id, newValue).then(() => {
+        let found = visible.find((elem) => elem.id == id)
+
+        updateSegmentData(id, {...found, description: newValue}).then(() => {
             updateSuccess(tmpId, "Значение элемента обновлено");
 
+        }).catch((error) => {
+            updateError(tmpId, "Значение элемента не удалось обноввить");
+
+        }).finally(()=>{
             toggleRerender()
         })
-
     }
 
     const handleDeleteSegments = () => {  //todo FIX bug если я оставлю единственный элемент на странице!!!
-        setIsLoading(true)
-        let tmpId = notifyLoading("Элементы удаляются")
+        selected.forEach((sel) => {
+            setIsLoading(true)
+            let tmpId = notifyLoading("Элементы удаляются")
 
-        deleteSegments(selectedAll, selected).then(() => {
-            updateSuccess(tmpId, "Выбранные элементы удалены")
+            deleteSegments(selectedAll, sel).then(() => {
+                updateSuccess(tmpId, "Выбранные элементы удалены")
 
-            setSelected(createEmptyNumberSet());
-            setSelectedAll(false);
+                setSelected(createEmptyNumberSet());
+                setSelectedAll(false);
 
-            toggleRerender();
+                toggleRerender();
+            })
         })
 
     }
@@ -228,17 +257,18 @@ export default function SegmentTable() {
 
         const id = notifyLoading("Добавление элемента");
 
-        addNewSegment(segmentAddValue).then((e: number) => {
+        addNewSegment(segmentAddValue, segmentDescription).then((e) => {
             updateSuccess(id, "Элемент добавлен")
             if (selectedAll){
                 setSelected(prev=>{
-                    prev.add(e)
+                    prev.add(e.data.id)
                     return prev;
                 })
             }
+        }).catch((error)=>{
+            updateError(id, "Ошибка добавления элемента: \n" + error.response.data.error)
         }).finally(() => {
             toggleRerender()
-
             setIsProcessAdd(false);
         })
     }
@@ -247,35 +277,68 @@ export default function SegmentTable() {
         setIsFilterSet(checkFilterSet())
     }, [filterElements]);
 
+    function handleSubmitRegexSegments(data){
+        console.log(data)
+
+
+        distribute(data).then((response)=>{
+            console.log(response)
+            notifySuccess(response.data.value)
+        }).catch((error)=>{
+            console.log(error)
+            notifyError("Ошибка распределения")
+        }).finally(() => {
+            toggleRerender()
+        })
+    }
+
+    const handleSubmitPercentageSegments = (data) => {
+        console.log(data)
+
+        distributeRandom(data.percentage).then((response)=>{
+            console.log(response)
+            notifySuccess(response.data.value)
+        }).catch((error)=>{
+            console.log(error)
+            notifyError("Ошибка распределения")
+        }).finally(() => {
+            toggleRerender()
+        })
+    }
+
     useEffect(() => {
         if (pageChanged){
             setPageChanged(false)
             return
         }
 
-        setIsLoading(true)
+        setIsLoading(false)
 
-        getSegmentsOnPageWithFilter(rowsPerPage, page, filterElements).then((r: ReturnData) => {
-            setVisible(r.data)
-            setRowsAmount(r.rows)
+        getSegmentsOnPageWithFilter(rowsPerPage, page, filterElements).then((returned) => {
+            let values = returned.data.content;
+            let totalRows = returned.data.totalElements
 
-            if (page * rowsPerPage >= r.rows && r.rows != 0) {
-                let diff = ~~(r.rows / rowsPerPage);
-                setPage(r.rows % rowsPerPage == 0 ? Math.max(0, diff - 1) : diff)
+            setVisible(values)
+            setRowsAmount(totalRows)
+
+            if (page * rowsPerPage >= totalRows && totalRows != 0) {
+                let diff = ~~(totalRows / rowsPerPage);
+                setPage(totalRows % rowsPerPage == 0 ? Math.max(0, diff - 1) : diff)
             } else {
 
                 setIsLoading(false)
 
-                if (r.rows == 0 && page != 0) {
+                if (totalRows == 0 && page != 0) {
                     setPage(0)
                     setPageChanged(true);
                     setIsLoading(false)
                 }
             }
 
-            setEmptyRows(Math.max(0, (1 + page) * rowsPerPage - r.rows))
+            setEmptyRows(Math.max(0, (1 + page) * rowsPerPage - totalRows))
 
         }).catch(e => {
+            logout()
             notifyError("Ошибка получения данных с сервера")
         }).finally(() => {
 
@@ -290,9 +353,12 @@ export default function SegmentTable() {
                 segmentAddValue={segmentAddValue}
                 handleAddSegment={handleAddSegment}
                 isProcessAdd={isProcessAdd}
-
+                handleSegmentDescription={handleSegmentDescription}
+                segmentDescription={segmentDescription}
             />
             <DistributeSegment
+                handleSubmitRegexSegments={handleSubmitRegexSegments}
+                handleSubmitPercentageSegments={handleSubmitPercentageSegments}
             />
             <Box sx={{width: '100%'}}>
                 <Paper sx={{width: '100%', mb: 2}}>
@@ -316,13 +382,7 @@ export default function SegmentTable() {
                             {isLoading ? (
                                 <LoadingProgressTable rowsPerPage={rowsPerPage}/>
                             ) : visible.length == 0 ? (
-                                <TableBody>
-                                    <TableRow>
-                                        <TableCell>
-                                            Nothing to see
-                                        </TableCell>
-                                    </TableRow>
-                                </TableBody>
+                                <EmptyTable/>
                             ) : (
                                 <SegmentTableBody
                                     allSelected={selectedAll}
@@ -330,7 +390,8 @@ export default function SegmentTable() {
                                     selected={selected}
                                     handleClick={handleSelect}
                                     emptyRows={emptyRows}
-                                    handleChangeById={handleChangeById}
+                                    handleChangeName={handleChangeName}
+                                    handleChangeDescription={handleChangeDescription}
                                 />
                             )}
 

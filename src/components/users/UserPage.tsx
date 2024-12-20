@@ -1,18 +1,19 @@
-import {Container} from "@mui/material";
-import SegmentTable from "./table/SegmentTable";
 import BackButton from "../dashboard/BackButton";
 import LogoutButton from "../auth/LogoutButton";
+import {Container} from "@mui/material";
+import UsersTable from "./table/UsersTable";
 
-const SegmentPage = () => {
+const UserPage = () => {
+
     return (
         <>
             <Container component="main">
                 <BackButton/>
-                <SegmentTable/>
+                <UsersTable/>
                 <LogoutButton/>
             </Container>
         </>
     );
 };
 
-export default SegmentPage;
+export default UserPage;
